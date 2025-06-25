@@ -1,0 +1,109 @@
+<!DOCTYPE html>
+<html>
+    <head>
+        <title>Markdown Editor & Displayer</title>
+        <script type="module" src="https://cdn.jsdelivr.net/npm/zero-md@3?register"></script>
+        <style>
+            * {
+                box-sizing: border-box;
+            }
+
+            html, body {
+                width: 100%;
+                height: 100%;
+            }
+
+            body {
+                margin: 0;
+                display: flex;
+                justify-content: center;
+                align-items: center;
+            }
+
+            .item {
+                width: 50%;
+                height: 100%;
+                max-width: 50%;
+                max-height: 100%;
+                overflow-y: auto;
+                word-wrap: break-word;
+
+                display: block;
+            }
+/*
+            #display { overflow-y: hidden; }*/
+            #user-input {     
+                font-size: 16px;
+                line-height: 1.5;
+                resize: none;
+            }
+
+            zero-md {
+                width: 100%;
+                min-height: 100%;
+            }
+            
+        </style>
+    </head>
+    <body>
+        <textarea id="user-input" class="item"># Markdown Display
+Uses `<zero-md>` to display stuff.
+
+Change the text box to change the display.</textarea>
+        <div class="item" id="display">
+            <zero-md>
+                <template data-append>
+                    <style>
+                        .markdown-body {
+                            min-height: 100%;
+                            padding: 5px;
+                        }
+                    </style>
+                </template>
+                <script type="text/markdown" id="3">
+# Markdown Display
+Uses `<zero-md>` to display stuff.
+
+Change the text box to change the display.
+                </script>
+            </zero-md>
+        </div>
+
+        <script>
+            const inputArea = document.querySelector("#user-input");
+            let last = inputArea.value;
+            const displayArea = document.querySelector("#display");
+            const mdToHTML = () => {
+                if (last === inputArea.value) return;
+                const zeroMdElement = document.createElement("zero-md");
+                zeroMdElement.innerHTML = `\
+                <template data-append>
+                    <style>
+                        .markdown-body {
+                            height: 100%;
+                            padding: 5px;
+                            max-height: 100%;
+                            overflow-y: auto;
+                        }
+                    </style>
+                </template>`;
+
+                const current = displayArea.querySelector(":scope zero-md");
+                console.log(current.scrollLeft); console.log(current.scrollTop);
+                zeroMdElement.addEventListener("zero-md-rendered", () => {zeroMdElement.scroll(current.scrollLeft, current.scrollTop); current.remove()});
+
+                const mdScript = document.createElement("script");
+                mdScript.type = "text/markdown";
+                mdScript.textContent = inputArea.value;
+
+                zeroMdElement.append(mdScript);
+                
+                displayArea.append(zeroMdElement);
+
+                last = inputArea.value;
+            };
+
+            setInterval(mdToHTML, 1000);
+        </script>
+    </body>
+</html>
