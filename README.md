@@ -2,7 +2,8 @@
 Simple Markdown editor and displayer.
 
 ## How to use
-Download `index.html` and open it in a browser. No local server or anything needed - just open the file. It's that simple.
+- **GitHub Pages**: [https://gohjy.github.io/simple-md](https://gohjy.github.io/simple-md)
+- **Local**: Download `index.html` and open it in a browser. No local server or anything needed - just open the file. It's that simple.
 
 ## How it works
 Grabs text box content, puts it through [zero-md](https://zerodevx.github.io/zero-md), does a bit of scroll hacks to make life slightly easier, and displays.
