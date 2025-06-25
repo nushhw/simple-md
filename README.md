@@ -14,3 +14,4 @@ Very basic, expect it to break or not work properly.
 ## License
 I honestly don't see the point in putting this under anything besides the [MIT License](https://choosealicense.com/licenses/mit/) 
 (it's *one file* with *ridiculously simple code*), so that's what this repo's under.
+*(zero-md is [licensed](https://github.com/zerodevx/zero-md?tab=ISC-1-ov-file#readme) under the [ISC License](https://choosealicense.com/licenses/isc/).)*
