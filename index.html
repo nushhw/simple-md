@@ -1,109 +1,162 @@
 <!DOCTYPE html>
-<html>
-    <head>
-        <title>Markdown Editor & Displayer</title>
-        <script type="module" src="https://cdn.jsdelivr.net/npm/zero-md@3?register"></script>
-        <style>
-            * {
-                box-sizing: border-box;
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Live Markdown Editor</title>
+    <script type="module" src="https://cdn.jsdelivr.net/npm/zero-md@3?register"></script>
+    <style>
+        *, *::before, *::after {
+            box-sizing: border-box;
+        }
+
+        html, body {
+            height: 100%;
+            margin: 0;
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+            color: #333;
+            background-color: #f4f7f6;
+            display: flex; /* Use flexbox for layout */
+            overflow: hidden; 
+        }
+        .container {
+            display: flex;
+            width: 100%;
+            height: 100%;
+        }
+
+        .editor-pane, .viewer-pane {
+            flex: 1; 
+            padding: 15px;
+            overflow-y: auto;
+            border-right: 1px solid #eee; 
+        }
+
+        .viewer-pane {
+            border-right: none;
+            background-color: #fff; /*NO SHIT SHERLOCK */
+        }
+
+        #markdown-input {
+            width: 100%;
+            height: 100%;
+            padding: 15px;
+            font-size: 1rem;
+            line-height: 1.6;
+            border: 1px solid #ddd;
+            border-radius: 5px;
+            background-color: #fff;
+            resize: none; 
+            font-family: 'SFMono-Regular', Consolas, 'Liberation Mono', Menlo, Courier, monospace; /* Monospace font for code editor feel */
+            box-shadow: inset 0 1px 3px rgba(0,0,0,0.06);
+            transition: border-color 0.2s;
+        }
+
+        #markdown-input:focus {
+            outline: none;
+            border-color: #007bff; 
+        }
+
+        /* Zero-MD Specific Styling */
+        zero-md {
+            display: block; 
+            width: 100%;
+            min-height: 100%; 
+        }
+
+        zero-md::part(container) {
+            padding: 15px;
+            line-height: 1.6;
+            word-wrap: break-word; 
+        }
+
+        @media (max-width: 768px) {
+            .container {
+                flex-direction: column; 
             }
 
-            html, body {
-                width: 100%;
-                height: 100%;
+            .editor-pane, .viewer-pane {
+                height: 50%; 
+                border-right: none;
+                border-bottom: 1px solid #eee; 
             }
 
-            body {
-                margin: 0;
-                display: flex;
-                justify-content: center;
-                align-items: center;
+            .viewer-pane {
+                border-bottom: none;
             }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="editor-pane">
+            <textarea id="markdown-input" placeholder="Start typing your Markdown here..."># Welcome to the Live Markdown Editor!
 
-            .item {
-                width: 50%;
-                height: 100%;
-                max-width: 50%;
-                max-height: 100%;
-                overflow-y: auto;
-                word-wrap: break-word;
+This is a simple, **real-time** Markdown editor built with HTML, CSS, and JavaScript, using the `zero-md` library for rendering.
 
-                display: block;
-            }
-/*
-            #display { overflow-y: hidden; }*/
-            #user-input {     
-                font-size: 16px;
-                line-height: 1.5;
-                resize: none;
-            }
+## How to use:
+- Type your Markdown in this **left pane**.
+- See the rendered output instantly in the **right pane**.
 
-            zero-md {
-                width: 100%;
-                min-height: 100%;
-            }
-            
-        </style>
-    </head>
-    <body>
-        <textarea id="user-input" class="item"># Markdown Display
-Uses `<zero-md>` to display stuff.
+### Features:
+- **Headings** (`#`, `##`, `###`)
+- *Italic* (`*text*` or `_text_`)
+- **Bold** (`**text**` or `__text__`)
+- `Inline code`
+- Code blocks:
+    ```javascript
+    const message = "Hello, World!";
+    console.log(message);
+    ```
+- [Links](https://www.google.com)
+- Lists:
+    - Item 1
+    - Item 2
+        - Nested item
+- Blockquotes:
+    > "The only way to do great work is to love what you do."
+    > - Steve Jobs
 
-Change the text box to change the display.</textarea>
-        <div class="item" id="display">
-            <zero-md>
-                <template data-append>
-                    <style>
-                        .markdown-body {
-                            min-height: 100%;
-                            padding: 5px;
-                        }
-                    </style>
-                </template>
-                <script type="text/markdown" id="3">
-# Markdown Display
-Uses `<zero-md>` to display stuff.
+---
 
-Change the text box to change the display.
-                </script>
-            </zero-md>
+Enjoy writing Markdown!</textarea>
         </div>
+        <div class="viewer-pane">
+            <zero-md id="markdown-viewer"></zero-md>
+        </div>
+    </div>
 
-        <script>
-            const inputArea = document.querySelector("#user-input");
-            let last = inputArea.value;
-            const displayArea = document.querySelector("#display");
-            const mdToHTML = () => {
-                if (last === inputArea.value) return;
-                const zeroMdElement = document.createElement("zero-md");
-                zeroMdElement.innerHTML = `\
-                <template data-append>
-                    <style>
-                        .markdown-body {
-                            height: 100%;
-                            padding: 5px;
-                            max-height: 100%;
-                            overflow-y: auto;
-                        }
-                    </style>
-                </template>`;
+    <script>
+        const markdownInput = document.getElementById('markdown-input');
+        const markdownViewer = document.getElementById('markdown-viewer');
 
-                const current = displayArea.querySelector(":scope zero-md");
-                console.log(current.scrollLeft); console.log(current.scrollTop);
-                zeroMdElement.addEventListener("zero-md-rendered", () => {zeroMdElement.scroll(current.scrollLeft, current.scrollTop); current.remove()});
+        const updateMarkdownViewer = () => {
+            markdownViewer.innerHTML = `<script type="text/markdown">${markdownInput.value}<\/script>`;
+        };
 
-                const mdScript = document.createElement("script");
-                mdScript.type = "text/markdown";
-                mdScript.textContent = inputArea.value;
+        updateMarkdownViewer();
 
-                zeroMdElement.append(mdScript);
-                
-                displayArea.append(zeroMdElement);
+        markdownInput.addEventListener('input', updateMarkdownViewer);
 
-                last = inputArea.value;
-            };
+        const saveContent = () => {
+            localStorage.setItem('savedMarkdown', markdownInput.value);
+        };
 
-            setInterval(mdToHTML, 200);
-        </script>
-    </body>
+        const loadContent = () => {
+            const savedContent = localStorage.getItem('savedMarkdown');
+            if (savedContent) {
+                markdownInput.value = savedContent;
+                updateMarkdownViewer(); 
+            }
+        };
+
+        window.addEventListener('load', loadContent);
+        let saveTimeout;
+        markdownInput.addEventListener('input', () => {
+            clearTimeout(saveTimeout);
+            saveTimeout = setTimeout(saveContent, 1000); // Save 1 second after typing stops
+        });
+        window.addEventListener('beforeunload', saveContent); // Save on page close/refresh
+    </script>
+</body>
 </html>
