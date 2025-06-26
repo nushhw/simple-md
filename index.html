@@ -3,10 +3,10 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Live Markdown Editor</title>
+    <title>Live Markdown Editor with Download</title>
     <script type="module" src="https://cdn.jsdelivr.net/npm/zero-md@3?register"></script>
     <style>
-        *, *::before, *::after {
+        * {
             box-sizing: border-box;
         }
 
@@ -16,25 +16,45 @@
             font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
             color: #333;
             background-color: #f4f7f6;
-            display: flex; /* Use flexbox for layout */
-            overflow: hidden; 
+            display: flex;
+            flex-direction: column;
+            overflow: hidden;
         }
+
+        header {
+            background-color: #fff;
+            padding: 10px 20px;
+            border-bottom: 1px solid #eee;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.05);
+            z-index: 10;
+        }
+
+        header h1 {
+            margin: 0;
+            font-size: 1.2rem;
+            color: #555;
+        }
+
         .container {
             display: flex;
+            flex: 1;
             width: 100%;
-            height: 100%;
+            height: calc(100% - 50px);
         }
 
         .editor-pane, .viewer-pane {
-            flex: 1; 
+            flex: 1;
             padding: 15px;
             overflow-y: auto;
-            border-right: 1px solid #eee; 
+            border-right: 1px solid #eee;
         }
 
         .viewer-pane {
             border-right: none;
-            background-color: #fff; /*NO SHIT SHERLOCK */
+            background-color: #fff;
         }
 
         #markdown-input {
@@ -46,39 +66,53 @@
             border: 1px solid #ddd;
             border-radius: 5px;
             background-color: #fff;
-            resize: none; 
-            font-family: 'SFMono-Regular', Consolas, 'Liberation Mono', Menlo, Courier, monospace; /* Monospace font for code editor feel */
+            resize: none;
+            font-family: 'SFMono-Regular', Consolas, 'Liberation Mono', Menlo, Courier, monospace;
             box-shadow: inset 0 1px 3px rgba(0,0,0,0.06);
             transition: border-color 0.2s;
         }
 
         #markdown-input:focus {
             outline: none;
-            border-color: #007bff; 
+            border-color: #007bff;
         }
 
-        /* Zero-MD Specific Styling */
         zero-md {
-            display: block; 
+            display: block;
             width: 100%;
-            min-height: 100%; 
+            min-height: 100%;
         }
 
         zero-md::part(container) {
             padding: 15px;
             line-height: 1.6;
-            word-wrap: break-word; 
+            word-wrap: break-word;
+        }
+
+        #download-btn {
+            background-color: #007bff;
+            color: white;
+            padding: 8px 15px;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+            font-size: 0.9rem;
+            transition: background-color 0.2s ease;
+        }
+
+        #download-btn:hover {
+            background-color: #0056b3;
         }
 
         @media (max-width: 768px) {
             .container {
-                flex-direction: column; 
+                flex-direction: column;
             }
 
             .editor-pane, .viewer-pane {
-                height: 50%; 
+                height: 50%;
                 border-right: none;
-                border-bottom: 1px solid #eee; 
+                border-bottom: 1px solid #eee;
             }
 
             .viewer-pane {
@@ -88,6 +122,10 @@
     </style>
 </head>
 <body>
+    <header>
+        <h1>Live Markdown Editor</h1>
+        <button id="download-btn">Download Markdown</button>
+    </header>
     <div class="container">
         <div class="editor-pane">
             <textarea id="markdown-input" placeholder="Start typing your Markdown here..."># Welcome to the Live Markdown Editor!
@@ -117,6 +155,10 @@ This is a simple, **real-time** Markdown editor built with HTML, CSS, and JavaSc
     > "The only way to do great work is to love what you do."
     > - Steve Jobs
 
+### Example of an image:
+Here is a blank image you provided:
+![Blank Box](image_9aad3d.png)
+
 ---
 
 Enjoy writing Markdown!</textarea>
@@ -129,14 +171,36 @@ Enjoy writing Markdown!</textarea>
     <script>
         const markdownInput = document.getElementById('markdown-input');
         const markdownViewer = document.getElementById('markdown-viewer');
+        const downloadButton = document.getElementById('download-btn');
 
         const updateMarkdownViewer = () => {
             markdownViewer.innerHTML = `<script type="text/markdown">${markdownInput.value}<\/script>`;
         };
 
+        const downloadMarkdown = () => {
+            const content = markdownInput.value;
+            const filename = 'my-markdown-document.md';
+
+            const blob = new Blob([content], { type: 'text/markdown;charset=utf-8' });
+
+            const url = URL.createObjectURL(blob);
+
+            const a = document.createElement('a');
+            a.href = url;
+            a.download = filename;
+
+            document.body.appendChild(a);
+            a.click();
+
+            document.body.removeChild(a);
+            URL.revokeObjectURL(url);
+        };
+
         updateMarkdownViewer();
 
         markdownInput.addEventListener('input', updateMarkdownViewer);
+
+        downloadButton.addEventListener('click', downloadMarkdown);
 
         const saveContent = () => {
             localStorage.setItem('savedMarkdown', markdownInput.value);
@@ -146,17 +210,18 @@ Enjoy writing Markdown!</textarea>
             const savedContent = localStorage.getItem('savedMarkdown');
             if (savedContent) {
                 markdownInput.value = savedContent;
-                updateMarkdownViewer(); 
+                updateMarkdownViewer();
             }
         };
 
         window.addEventListener('load', loadContent);
+
         let saveTimeout;
         markdownInput.addEventListener('input', () => {
             clearTimeout(saveTimeout);
-            saveTimeout = setTimeout(saveContent, 1000); // Save 1 second after typing stops
+            saveTimeout = setTimeout(saveContent, 1000);
         });
-        window.addEventListener('beforeunload', saveContent); // Save on page close/refresh
+        window.addEventListener('beforeunload', saveContent);
     </script>
 </body>
 </html>
