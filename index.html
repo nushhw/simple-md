@@ -3,10 +3,10 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Live Markdown Editor with Download</title>
+    <title>Advanced Live Markdown Editor</title>
     <script type="module" src="https://cdn.jsdelivr.net/npm/zero-md@3?register"></script>
     <style>
-        * {
+        *, *::before, *::after {
             box-sizing: border-box;
         }
 
@@ -36,6 +36,26 @@
             margin: 0;
             font-size: 1.2rem;
             color: #555;
+        }
+
+        .actions button {
+            background-color: #007bff;
+            color: white;
+            padding: 8px 15px;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+            font-size: 0.9rem;
+            margin-left: 10px;
+            transition: background-color 0.2s ease;
+        }
+
+        .actions button:hover {
+            background-color: #0056b3;
+        }
+
+        .actions button:first-child {
+            margin-left: 0;
         }
 
         .container {
@@ -89,21 +109,6 @@
             word-wrap: break-word;
         }
 
-        #download-btn {
-            background-color: #007bff;
-            color: white;
-            padding: 8px 15px;
-            border: none;
-            border-radius: 4px;
-            cursor: pointer;
-            font-size: 0.9rem;
-            transition: background-color 0.2s ease;
-        }
-
-        #download-btn:hover {
-            background-color: #0056b3;
-        }
-
         @media (max-width: 768px) {
             .container {
                 flex-direction: column;
@@ -118,50 +123,62 @@
             .viewer-pane {
                 border-bottom: none;
             }
+
+            header {
+                flex-direction: column;
+                align-items: flex-start;
+                padding-bottom: 10px;
+            }
+
+            .actions {
+                margin-top: 10px;
+                width: 100%;
+                display: flex;
+                flex-wrap: wrap;
+                gap: 5px;
+            }
+
+            .actions button {
+                margin-left: 0;
+                flex: 1 1 auto;
+                min-width: 120px;
+            }
         }
     </style>
 </head>
 <body>
     <header>
-        <h1>Live Markdown Editor</h1>
-        <button id="download-btn">Download Markdown</button>
+        <h1>Advanced Live Markdown Editor</h1>
+        <div class="actions">
+            <button id="open-btn" title="Open a Markdown or text file from your computer">Open File</button>
+            <button id="save-md-btn" title="Save the current Markdown content as a .md file">Save Markdown</button>
+            <button id="save-html-btn" title="Save the rendered HTML content as an .html file">Save HTML</button>
+        </div>
     </header>
     <div class="container">
         <div class="editor-pane">
-            <textarea id="markdown-input" placeholder="Start typing your Markdown here..."># Welcome to the Live Markdown Editor!
+            <textarea id="markdown-input" placeholder="Start typing your Markdown here!"># Welcome to the Advanced Live Markdown Editor!
 
-This is a simple, **real-time** Markdown editor built with HTML, CSS, and JavaScript, using the `zero-md` library for rendering.
+This editor now includes advanced file handling capabilities.
 
-## How to use:
-- Type your Markdown in this **left pane**.
-- See the rendered output instantly in the **right pane**.
+## New Features:
+- **Open File**: Load Markdown or text files from your local system.
+- **Save Markdown**: Save your current Markdown content to a `.md` file.
+- **Save HTML**: Save the *rendered* output as an `.html` file.
 
-### Features:
-- **Headings** (`#`, `##`, `###`)
-- *Italic* (`*text*` or `_text_`)
-- **Bold** (`**text**` or `__text__`)
-- `Inline code`
-- Code blocks:
-    ```javascript
-    const message = "Hello, World!";
-    console.log(message);
-    ```
-- [Links](https://www.google.com)
-- Lists:
-    - Item 1
-    - Item 2
-        - Nested item
-- Blockquotes:
-    > "The only way to do great work is to love what you do."
-    > - Steve Jobs
+### How to use:
+- **Open File**: Click "Open File" and select a `.md` or `.txt` file.
+- **Save Markdown**: Click "Save Markdown" to download the content from the left pane.
+- **Save HTML**: Click "Save HTML" to download the content from the right pane.
 
 ### Example of an image:
 Here is a blank image you provided:
 ![Blank Box](image_9aad3d.png)
+*(Note: For this image to display, you need to place 'image_9aad3d.png' in the same directory as this HTML file, or provide a full URL to the image.)*
 
 ---
 
-Enjoy writing Markdown!</textarea>
+Enjoy writing and managing your Markdown!</textarea>
         </div>
         <div class="viewer-pane">
             <zero-md id="markdown-viewer"></zero-md>
@@ -171,36 +188,153 @@ Enjoy writing Markdown!</textarea>
     <script>
         const markdownInput = document.getElementById('markdown-input');
         const markdownViewer = document.getElementById('markdown-viewer');
-        const downloadButton = document.getElementById('download-btn');
+        const openButton = document.getElementById('open-btn');
+        const saveMdButton = document.getElementById('save-md-btn');
+        const saveHtmlButton = document.getElementById('save-html-btn');
 
         const updateMarkdownViewer = () => {
             markdownViewer.innerHTML = `<script type="text/markdown">${markdownInput.value}<\/script>`;
         };
 
-        const downloadMarkdown = () => {
+        const handleFileError = (err) => {
+            if (err.name === 'AbortError') {
+                console.log('File operation cancelled by user.');
+            } else {
+                console.error('File operation failed:', err);
+                alert(`Error during file operation: ${err.message || err}`);
+            }
+        };
+
+        const openMarkdownFile = async () => {
+            if ('showOpenFilePicker' in window) {
+                try {
+                    const [fileHandle] = await window.showOpenFilePicker({
+                        types: [{
+                            description: 'Markdown/Text Files',
+                            accept: {
+                                'text/markdown': ['.md', '.markdown'],
+                                'text/plain': ['.txt']
+                            },
+                        }],
+                        multiple: false
+                    });
+                    const file = await fileHandle.getFile();
+                    const content = await file.text();
+                    markdownInput.value = content;
+                    updateMarkdownViewer();
+                } catch (err) {
+                    handleFileError(err);
+                }
+            } else {
+                const input = document.createElement('input');
+                input.type = 'file';
+                input.accept = '.md,.markdown,.txt';
+                input.style.display = 'none';
+                document.body.appendChild(input);
+
+                input.onchange = async (e) => {
+                    const file = e.target.files[0];
+                    if (file) {
+                        const reader = new FileReader();
+                        reader.onload = (event) => {
+                            markdownInput.value = event.target.result;
+                            updateMarkdownViewer();
+                        };
+                        reader.onerror = (err) => {
+                            console.error('Error reading file:', err);
+                            alert('Error reading file.');
+                        };
+                        reader.readAsText(file);
+                    }
+                    document.body.removeChild(input);
+                };
+                input.click();
+            }
+        };
+
+        const saveMarkdownFile = async () => {
             const content = markdownInput.value;
-            const filename = 'my-markdown-document.md';
+            const defaultFilename = 'my-markdown-document.md';
 
-            const blob = new Blob([content], { type: 'text/markdown;charset=utf-8' });
+            if ('showSaveFilePicker' in window) {
+                try {
+                    const fileHandle = await window.showSaveFilePicker({
+                        suggestedName: defaultFilename,
+                        types: [{
+                            description: 'Markdown File',
+                            accept: { 'text/markdown': ['.md', '.markdown'] },
+                        }],
+                    });
+                    const writableStream = await fileHandle.createWritable();
+                    await writableStream.write(new Blob([content], { type: 'text/markdown;charset=utf-8' }));
+                    await writableStream.close();
+                    console.log('Markdown saved successfully via File System Access API.');
+                } catch (err) {
+                    handleFileError(err);
+                }
+            } else {
+                const blob = new Blob([content], { type: 'text/markdown;charset=utf-8' });
+                const url = URL.createObjectURL(blob);
+                const a = document.createElement('a');
+                a.href = url;
+                a.download = defaultFilename;
+                document.body.appendChild(a);
+                a.click();
+                document.body.removeChild(a);
+                URL.revokeObjectURL(url);
+                console.log('Markdown downloaded via fallback.');
+            }
+        };
 
-            const url = URL.createObjectURL(blob);
+        const saveHtmlFile = async () => {
+            const renderedContentContainer = markdownViewer.shadowRoot ? markdownViewer.shadowRoot.querySelector('div[part="container"]') : null;
+            let htmlContent = '';
+            if (renderedContentContainer) {
+                htmlContent = `<!DOCTYPE html>\n<html>\n<head>\n    <meta charset="UTF-8">\n    <title>Markdown Rendered Output</title>\n    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/github-markdown-css@5.2.0/github-markdown.min.css">\n    <style>\n        .markdown-body {\n            box-sizing: border-box;\n            min-width: 200px;\n            max-width: 980px;\n            margin: 0 auto;\n            padding: 45px;\n        }\n\n        @media (max-width: 767px) {\n            .markdown-body {\n                padding: 15px;\n            }\n        }\n    </style>\n</head>\n<body>\n    <article class="markdown-body">\n${renderedContentContainer.innerHTML}\n    </article>\n</body>\n</html>`;
+            } else {
+                alert("The rendered HTML could not be fully captured. Please try again after the Markdown has fully rendered, or save as Markdown instead.");
+                return;
+            }
 
-            const a = document.createElement('a');
-            a.href = url;
-            a.download = filename;
+            const defaultFilename = 'my-document.html';
 
-            document.body.appendChild(a);
-            a.click();
-
-            document.body.removeChild(a);
-            URL.revokeObjectURL(url);
+            if ('showSaveFilePicker' in window) {
+                try {
+                    const fileHandle = await window.showSaveFilePicker({
+                        suggestedName: defaultFilename,
+                        types: [{
+                            description: 'HTML File',
+                            accept: { 'text/html': ['.html', '.htm'] },
+                        }],
+                    });
+                    const writableStream = await fileHandle.createWritable();
+                    await writableStream.write(new Blob([htmlContent], { type: 'text/html;charset=utf-8' }));
+                    await writableStream.close();
+                    console.log('HTML saved successfully via File System Access API.');
+                } catch (err) {
+                    handleFileError(err);
+                }
+            } else {
+                const blob = new Blob([htmlContent], { type: 'text/html;charset=utf-8' });
+                const url = URL.createObjectURL(blob);
+                const a = document.createElement('a');
+                a.href = url;
+                a.download = defaultFilename;
+                document.body.appendChild(a);
+                a.click();
+                document.body.removeChild(a);
+                URL.revokeObjectURL(url);
+                console.log('HTML downloaded via fallback.');
+            }
         };
 
         updateMarkdownViewer();
 
         markdownInput.addEventListener('input', updateMarkdownViewer);
 
-        downloadButton.addEventListener('click', downloadMarkdown);
+        openButton.addEventListener('click', openMarkdownFile);
+        saveMdButton.addEventListener('click', saveMarkdownFile);
+        saveHtmlButton.addEventListener('click', saveHtmlFile);
 
         const saveContent = () => {
             localStorage.setItem('savedMarkdown', markdownInput.value);
